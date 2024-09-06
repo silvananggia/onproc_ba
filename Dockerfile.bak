@@ -1,0 +1,45 @@
+# Use an official Python runtime as a parent image with full Debian
+FROM python:3.10-bullseye
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Update package list and install system dependencies and tools for building GDAL
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    wget \
+    python3-dev \
+    libgdal-dev \
+    libproj-dev \
+    libsqlite3-dev \
+    zlib1g-dev \
+    libgeos-dev \
+    cmake \
+    sudo \
+    --fix-missing
+
+# Download and install GDAL from source
+ENV GDAL_VERSION 3.7.0
+RUN wget https://github.com/OSGeo/gdal/releases/download/v${GDAL_VERSION}/gdal-${GDAL_VERSION}.tar.gz && \
+    tar -xzf gdal-${GDAL_VERSION}.tar.gz && \
+    cd gdal-${GDAL_VERSION} && \
+    mkdir build  && \
+    cd build/ && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build . && \
+    sudo cmake --build . --target install
+
+# Install the GDAL Python package
+RUN pip install --no-cache-dir gdal
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install Python packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Make port 5000 available to the world outside this container
+EXPOSE 5000
+
+# Run app.py when the container launches
+CMD ["python", "app.py"]

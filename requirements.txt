@@ -1,0 +1,7 @@
+numpy
+Flask
+psycopg2-binary
+requests
+wget
+gdal
+
